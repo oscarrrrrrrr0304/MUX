@@ -212,8 +212,8 @@ function App() {
 
   const handlePrint = () => window.print();
 
-  const handleShowAdvanced = () => {
-    setShowAdvanced(true);
+  const handleToggleAdvanced = () => {
+    setShowAdvanced((prev) => !prev);
   };
 
   useEffect(() => {
@@ -262,6 +262,7 @@ function App() {
                 Guardar en PDF
               </button>
             </div>
+            <div className="mt-8 h-px w-full bg-gradient-to-r from-transparent via-rappi-peach/40 to-transparent" />
           </div>
         </header>
       </div>
@@ -387,11 +388,10 @@ function App() {
           </div>
           <button
             type="button"
-            onClick={handleShowAdvanced}
-            className="rounded-full border border-rappi-orange/40 bg-white/80 px-7 py-3 text-sm font-semibold text-rappi-orange transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
-            disabled={showAdvanced}
+            onClick={handleToggleAdvanced}
+            className="rounded-full border border-rappi-orange/40 bg-white/80 px-7 py-3 text-sm font-semibold text-rappi-orange transition hover:bg-white"
           >
-            {showAdvanced ? "Hacks activados" : "Ver hacks avanzados"}
+            {showAdvanced ? "Ocultar hacks" : "Ver hacks avanzados"}
           </button>
         </div>
       </footer>
