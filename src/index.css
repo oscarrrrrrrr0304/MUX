@@ -1,0 +1,18 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+body {
+  margin: 0;
+  background-color: #fff5ec;
+  background-image: radial-gradient(circle at top right, rgba(255, 107, 74, 0.25), transparent 55%), radial-gradient(circle at bottom left, rgba(255, 195, 69, 0.25), transparent 60%);
+}
+
+.section-card {
+  @apply rounded-3xl border border-white/60 bg-white/90 backdrop-blur-xl shadow-2xl;
+  box-shadow: 0 32px 60px -32px rgba(255, 107, 74, 0.38);
+}
