@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import confetti from "canvas-confetti";
 
 const swapImageModuleMap = import.meta.glob("./assets/sustitutos/*.png", {
   eager: true,
@@ -53,53 +54,39 @@ const requisitos = [
 const secciones = [
   {
     title: "Descarga y arranca",
-    quick: ["Instala la app", "Acepta notis", "Verifica código"],
-    cta: "Guardé mi dirección"
+    quick: ["Instala la app", "Activa notis y permisos", "Confirma tu código"],
+    cta: "Primer paso listo",
+    actionMessages: {
+      loading: "Armando tu Rappi a toda velocidad...",
+      success: "Listo, ya puedes entrar y ver la app personalizada."
+    }
   },
   {
-    title: "Pon la casa a punto",
-    quick: ["Direcciones con etiquetas", "Contactos de confianza", "PIN + biometría"],
-    cta: "Perfil listo"
+    title: "Deja tu espacio listo",
+    quick: ["Guarda tu dirección", "Agrega un contacto clave", "Activa PIN o Face ID"],
+    cta: "Casa lista",
+    actionMessages: {
+      loading: "Guardando detalles para que el rider llegue sin drama...",
+      success: "Perfecto, tu hogar quedó listo para recibir pedidos."
+    }
   },
   {
-    title: "Tour por el inicio",
-    quick: ["Busca por barra", "Explora promos", "Accede a RappiPay"],
-    cta: "Entendido"
+    title: "Arma tu primer pedido",
+    quick: ["Busca lo que antoja", "Revisa tiempos y promos", "Deja nota para el shopper"],
+    cta: "Pedir sin miedo",
+    actionMessages: {
+      loading: "Revisando tu carrito y aplicando promos...",
+      success: "Pedido listo. Solo toca confirmar cuando quieras."
+    }
   },
   {
-    title: "Arma tu pedido",
-    quick: ["Elige restaurant", "Revisa tiempos", "Añade nota"],
-    cta: "Pedir ahora"
-  },
-  {
-    title: "Sigue cada paso",
-    quick: ["Timeline en vivo", "Comparte tracking", "Chatea si necesitas"],
-    cta: "Pedido visto"
-  },
-  {
-    title: "Controla tu dinero",
-    quick: ["Tarjetas seguras", "CashBack y transfer", "Alertas de gasto"],
-    cta: "Finanzas al día"
-  },
-  {
-    title: "Prime vibes",
-    quick: ["Suscríbete", "Ahorro visible", "Cancela cuando quieras"],
-    cta: "Me uno"
-  },
-  {
-    title: "Soporte chill",
-    quick: ["Ayuda rápida", "Reembolsos en taps", "Modo seguro"],
-    cta: "Listo"
-  },
-  {
-    title: "Tips de la casa",
-    quick: ["Actualiza siempre", "Lee reseñas", "Comparte referidos"],
-    cta: "Los aplico"
-  },
-  {
-    title: "Cuando algo falla",
-    quick: ["Reinicia app", "Reporta cobro", "Actualiza dirección"],
-    cta: "Problema resuelto"
+    title: "Sigue todo en vivo",
+    quick: ["Timeline con cada paso", "Comparte el link de tracking", "Chatea si necesitas algo"],
+    cta: "Tengo el control",
+    actionMessages: {
+      loading: "Activando alertas para que no te pierdas nada...",
+      success: "Todo sincronizado. Te avisamos cada movimiento al instante."
+    }
   }
 ];
 
@@ -165,6 +152,104 @@ const advancedHacks = [
     ]
   }
 ];
+
+function createSeededRandom(seed) {
+  let value = seed || Date.now();
+  return () => {
+    value = (value * 1664525 + 1013904223) % 4294967296;
+    return value / 4294967296;
+  };
+}
+
+function ConfettiBurst({ seed }) {
+  const pieces = useMemo(() => {
+    const rand = createSeededRandom(seed);
+    const palette = ["#ff6b4a", "#ff8b6a", "#ffd2c3", "#ffb347", "#ff6cc2"];
+
+    return Array.from({ length: 16 }, (_, index) => {
+      const left = `${rand() * 100}%`;
+      const delay = `${rand() * 0.25}s`;
+      const duration = `${0.9 + rand() * 0.35}s`;
+      const color = palette[Math.floor(rand() * palette.length)];
+      const translateX = `${rand() > 0.5 ? "" : "-"}${20 + rand() * 25}%`;
+      const rotateStart = `${-60 + rand() * 120}deg`;
+      const rotateEnd = `${-180 + rand() * 360}deg`;
+
+      return {
+        id: `${seed}-${index}`,
+        left,
+        delay,
+        duration,
+        color,
+        translateX,
+        rotateStart,
+        rotateEnd
+      };
+    });
+  }, [seed]);
+
+  return (
+    <div className="confetti-burst">
+      {pieces.map((piece) => (
+        <span
+          key={piece.id}
+          className="confetti-piece"
+          style={{
+            left: piece.left,
+            animationDelay: piece.delay,
+            animationDuration: piece.duration,
+            backgroundColor: piece.color,
+            "--confetti-x": piece.translateX,
+            "--confetti-rotate-start": piece.rotateStart,
+            "--confetti-rotate-end": piece.rotateEnd
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+function fireCanvasConfetti(burst = "default") {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (prefersReducedMotion) {
+    return;
+  }
+
+  const base = {
+    disableForReducedMotion: true,
+    startVelocity: 45,
+    gravity: 0.9,
+    ticks: 200,
+    scalar: burst === "pro" ? 1.1 : 0.9
+  };
+
+  confetti({
+    ...base,
+    particleCount: burst === "pro" ? 160 : 120,
+    spread: 70,
+    origin: { y: 0.6 }
+  });
+
+  confetti({
+    ...base,
+    particleCount: burst === "pro" ? 90 : 60,
+    spread: 55,
+    angle: 60,
+    origin: { x: 0.05, y: 0.7 }
+  });
+
+  confetti({
+    ...base,
+    particleCount: burst === "pro" ? 90 : 60,
+    spread: 55,
+    angle: 120,
+    origin: { x: 0.95, y: 0.7 }
+  });
+}
 
 function ModalShell({ children, onClose, maxWidth = "max-w-lg" }) {
   return (
@@ -290,6 +375,9 @@ function App() {
   const quickActionsRef = useRef(null);
   const advancedRef = useRef(null);
   const proActionTimeoutRef = useRef(null);
+  const noteActionTimeoutRef = useRef(null);
+  const journeyCelebrateTimeoutRef = useRef(null);
+  const sectionActionTimeouts = useRef({});
   const [copiedAction, setCopiedAction] = useState("");
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [activeJourney, setActiveJourney] = useState(0);
@@ -300,21 +388,49 @@ function App() {
   const [preferenceChoice, setPreferenceChoice] = useState("similar");
   const [preferenceSaved, setPreferenceSaved] = useState(false);
   const [journeyActionStatus, setJourneyActionStatus] = useState(null);
+  const [journeyCelebrateId, setJourneyCelebrateId] = useState(null);
   const [selectedSwapImage, setSelectedSwapImage] = useState(0);
+  const [noteJourneyText, setNoteJourneyText] = useState("");
+  const [noteJourneyStatus, setNoteJourneyStatus] = useState(null);
+  const [checklistProgress, setChecklistProgress] = useState(() =>
+    requisitos.reduce((acc, item) => ({ ...acc, [item]: false }), {})
+  );
+  const [sectionActionState, setSectionActionState] = useState({});
+  const checklistCompleted = useMemo(
+    () => Object.values(checklistProgress).filter(Boolean).length,
+    [checklistProgress]
+  );
+  const checklistPercent = useMemo(
+    () => (requisitos.length ? Math.round((checklistCompleted / requisitos.length) * 100) : 0),
+    [checklistCompleted]
+  );
+  const checklistStatusLabel = useMemo(() => {
+    if (checklistCompleted === requisitos.length) {
+      return "Checklist completo. ¡Listo para pedir!";
+    }
+    return `${checklistCompleted}/${requisitos.length} completados (${checklistPercent}%)`;
+  }, [checklistCompleted, checklistPercent]);
   const currentJourney = journeys[activeJourney];
   const isSwapJourney = currentJourney.id === "swap";
   const isProJourney = currentJourney.id === "pro";
+  const isNoteJourney = currentJourney.id === "note";
   const journeyProductImage = currentJourney.imageFile
     ? productImageLookup[currentJourney.imageFile.toLowerCase()]
     : undefined;
-  const journeyWrapperClass = isSwapJourney || isProJourney
+  const journeyWrapperClass = isSwapJourney || isProJourney || isNoteJourney
     ? "mt-10 flex justify-center"
     : "mt-10 grid gap-8 lg:grid-cols-[1.1fr_0.9fr]";
-  const journeyCardClass = `rounded-3xl border border-white/70 bg-white/95 p-8 shadow-2xl shadow-orange-500/10 ${
-    isSwapJourney ? "mx-auto max-w-lg" : isProJourney ? "mx-auto max-w-2xl text-center" : ""
+  const journeyCardClass = `relative overflow-hidden rounded-3xl border border-white/70 bg-white/95 p-8 shadow-2xl shadow-orange-500/10 ${
+    isSwapJourney
+      ? "mx-auto max-w-lg"
+      : isProJourney
+        ? "mx-auto max-w-2xl text-center"
+        : isNoteJourney
+          ? "mx-auto max-w-xl text-center"
+          : ""
   }`;
   const actionContainerClass = `mt-8 flex flex-wrap gap-3 ${
-    isSwapJourney || isProJourney ? "justify-center" : ""
+    isSwapJourney || isProJourney || isNoteJourney ? "justify-center" : ""
   }`;
   const swapImages = useMemo(() => {
     const base = swapImageUrls.slice(0, 3);
@@ -346,7 +462,15 @@ function App() {
 
   const scrollTo = (ref) => {
     if (ref.current) {
-      ref.current.scrollIntoView({ behavior: "smooth", block: "start" });
+      const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+      if (prefersReducedMotion) {
+        ref.current.scrollIntoView({ behavior: "auto", block: "start" });
+        return;
+      }
+
+      const targetTop = ref.current.getBoundingClientRect().top + window.pageYOffset - 40;
+      window.scrollTo({ top: targetTop, behavior: "smooth" });
     }
   };
 
@@ -362,6 +486,67 @@ function App() {
     }
   };
 
+  const toggleChecklistItem = (item) => {
+    setChecklistProgress((prev) => ({ ...prev, [item]: !prev[item] }));
+  };
+
+  const handleSectionAction = (section) => {
+    if (!section?.title || !section?.actionMessages) {
+      return;
+    }
+
+    const { title, actionMessages } = section;
+
+    if (sectionActionTimeouts.current[title]) {
+      sectionActionTimeouts.current[title].forEach((timeoutId) => clearTimeout(timeoutId));
+      delete sectionActionTimeouts.current[title];
+    }
+
+    sectionActionTimeouts.current[title] = [];
+
+    setSectionActionState((prev) => ({
+      ...prev,
+      [title]: { phase: "loading", message: actionMessages.loading }
+    }));
+
+    const successTimeout = setTimeout(() => {
+      const celebrationId = Date.now();
+
+      setSectionActionState((prev) => ({
+        ...prev,
+        [title]: { phase: "success", message: actionMessages.success, celebrateId: celebrationId }
+      }));
+
+      fireCanvasConfetti();
+
+      const confettiTimeout = setTimeout(() => {
+        setSectionActionState((prev) => {
+          const current = prev[title];
+          if (!current || current.celebrateId !== celebrationId) {
+            return prev;
+          }
+          return {
+            ...prev,
+            [title]: { ...current, celebrateId: null }
+          };
+        });
+      }, 1300);
+
+      const resetTimeout = setTimeout(() => {
+        setSectionActionState((prev) => {
+          const next = { ...prev };
+          delete next[title];
+          return next;
+        });
+        delete sectionActionTimeouts.current[title];
+      }, 2400);
+
+      sectionActionTimeouts.current[title] = [confettiTimeout, resetTimeout];
+    }, 900);
+
+    sectionActionTimeouts.current[title].push(successTimeout);
+  };
+
   const handlePrint = () => window.print();
 
   const handleToggleAdvanced = () => {
@@ -373,11 +558,37 @@ function App() {
       return;
     }
 
+    if (isNoteJourney && actionType === "save") {
+      if (noteActionTimeoutRef.current) {
+        clearTimeout(noteActionTimeoutRef.current);
+        noteActionTimeoutRef.current = null;
+      }
+
+      if (!noteJourneyText.trim()) {
+        setNoteJourneyStatus({ phase: "error", message: "Escribe una indicación breve para tu shopper." });
+        return;
+      }
+
+      setNoteJourneyStatus({ phase: "loading", message: "Guardando tu mensaje personalizado..." });
+
+      noteActionTimeoutRef.current = setTimeout(() => {
+        setNoteJourneyStatus({ phase: "success", message: "Lo verán en la tarjeta del pedido al instante." });
+        noteActionTimeoutRef.current = null;
+      }, 1000);
+      return;
+    }
+
     if (isProJourney && (actionType === "join" || actionType === "renew")) {
       if (proActionTimeoutRef.current) {
         clearTimeout(proActionTimeoutRef.current);
         proActionTimeoutRef.current = null;
       }
+      if (journeyCelebrateTimeoutRef.current) {
+        clearTimeout(journeyCelebrateTimeoutRef.current);
+        journeyCelebrateTimeoutRef.current = null;
+      }
+
+      setJourneyCelebrateId(null);
 
       const loadingMessage =
         actionType === "join"
@@ -391,7 +602,17 @@ function App() {
       setJourneyActionStatus({ type: actionType, phase: "loading", message: loadingMessage });
 
       proActionTimeoutRef.current = setTimeout(() => {
+        const celebrationId = Date.now();
+
         setJourneyActionStatus({ type: actionType, phase: "success", message: successMessage });
+        setJourneyCelebrateId(celebrationId);
+        fireCanvasConfetti("pro");
+
+        journeyCelebrateTimeoutRef.current = setTimeout(() => {
+          setJourneyCelebrateId(null);
+          journeyCelebrateTimeoutRef.current = null;
+        }, 1400);
+
         proActionTimeoutRef.current = null;
       }, 1100);
       return;
@@ -446,11 +667,24 @@ function App() {
 
   useEffect(() => {
     setJourneyActionStatus(null);
+    setNoteJourneyStatus(null);
     if (proActionTimeoutRef.current) {
       clearTimeout(proActionTimeoutRef.current);
       proActionTimeoutRef.current = null;
     }
-  }, [activeJourney]);
+    if (noteActionTimeoutRef.current) {
+      clearTimeout(noteActionTimeoutRef.current);
+      noteActionTimeoutRef.current = null;
+    }
+    if (journeyCelebrateTimeoutRef.current) {
+      clearTimeout(journeyCelebrateTimeoutRef.current);
+      journeyCelebrateTimeoutRef.current = null;
+    }
+    setJourneyCelebrateId(null);
+    if (!isNoteJourney) {
+      setNoteJourneyText("");
+    }
+  }, [activeJourney, isNoteJourney]);
 
   useEffect(() => {
     if (journeyActionStatus?.phase === "success") {
@@ -464,7 +698,29 @@ function App() {
     if (proActionTimeoutRef.current) {
       clearTimeout(proActionTimeoutRef.current);
     }
+    if (noteActionTimeoutRef.current) {
+      clearTimeout(noteActionTimeoutRef.current);
+    }
+    if (journeyCelebrateTimeoutRef.current) {
+      clearTimeout(journeyCelebrateTimeoutRef.current);
+    }
+    Object.values(sectionActionTimeouts.current).forEach((timeouts) => {
+      timeouts.forEach((timeoutId) => clearTimeout(timeoutId));
+    });
   }, []);
+
+  useEffect(() => {
+    if (!noteJourneyStatus) {
+      return undefined;
+    }
+
+    if (noteJourneyStatus.phase === "success" || noteJourneyStatus.phase === "error") {
+      const timeout = setTimeout(() => setNoteJourneyStatus(null), 2400);
+      return () => clearTimeout(timeout);
+    }
+
+    return undefined;
+  }, [noteJourneyStatus]);
 
   useEffect(() => {
     if (!showPreferenceModal) {
@@ -476,17 +732,19 @@ function App() {
   }, [showPreferenceModal, swapImages]);
 
   return (
-    <div className="min-h-screen bg-sunny bg-no-repeat text-rappi-graphite">
+    <div className="min-h-screen bg-rappi-cream text-rappi-graphite">
       <div className="relative overflow-hidden">
-        <div className="pointer-events-none absolute inset-0 bg-mesh opacity-70" />
         <header className="relative z-10 px-6 pt-12 pb-16 sm:px-10 lg:px-24">
           <div className="max-w-5xl">
             <span className="inline-block rounded-full border border-white/70 bg-white/90 px-4 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-rappi-graphite/70 shadow-sm">
               Guía Rappi Lovers 2025
             </span>
             <h1 className="mt-6 text-4xl font-semibold text-rappi-graphite sm:text-5xl lg:text-6xl">
-              Manual visual para usar Rappi sin vueltas.
+              Manual visual e interactivo para vivir Rappi al 100.
             </h1>
+            <p className="mt-3 text-sm font-semibold uppercase tracking-[0.3em] text-rappi-graphite/50">
+              Manual de usuario por Oscar Mario Alejandro Muñoz Romero
+            </p>
             <p className="mt-6 max-w-3xl text-lg text-rappi-graphite/80 sm:text-xl">
               Puro paso clave, copy corto y mucha acción para que te animes a probarlo ya.
             </p>
@@ -533,15 +791,54 @@ function App() {
               <div>
                 <h2 className="text-2xl font-semibold text-rappi-graphite">Checklist rápido</h2>
                 <p className="text-sm text-rappi-graphite/70">Deja todo listo y evita contratiempos en tu primer pedido.</p>
+                <p className="mt-2 text-xs font-semibold uppercase tracking-[0.2em] text-rappi-graphite/50">
+                  {checklistStatusLabel}
+                </p>
               </div>
               <span className="rounded-full bg-rappi-orange/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-rappi-orange">Paso 1</span>
             </header>
-            <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-              {requisitos.map((item) => (
-                <div key={item} className="rounded-2xl border border-white/60 bg-white/90 px-4 py-6 text-sm text-rappi-graphite/80 shadow-md">
-                  {item}
-                </div>
-              ))}
+            <div
+              role="progressbar"
+              aria-valuenow={checklistPercent}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-label="Avance del checklist"
+              className="mt-6 h-2 w-full overflow-hidden rounded-full bg-rappi-peach/20"
+            >
+              <div
+                className="h-full rounded-full bg-gradient-to-r from-rappi-orange via-rappi-coral to-rappi-peach transition-all duration-500"
+                style={{ width: `${checklistPercent}%` }}
+              />
+            </div>
+            <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+              {requisitos.map((item) => {
+                const isChecked = checklistProgress[item];
+                return (
+                  <button
+                    key={item}
+                    type="button"
+                    onClick={() => toggleChecklistItem(item)}
+                    aria-pressed={isChecked}
+                    className={`group flex items-center justify-between rounded-2xl border px-4 py-6 text-left text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-rappi-orange/40 ${
+                      isChecked
+                        ? "border-rappi-orange bg-gradient-to-r from-rappi-orange via-rappi-coral to-rappi-peach text-white shadow-lg shadow-orange-500/30"
+                        : "border-white/60 bg-white/90 text-rappi-graphite/80 hover:border-rappi-orange/40 hover:shadow-md"
+                    }`}
+                  >
+                    <span className="max-w-[70%]">{item}</span>
+                    <span
+                      className={`flex h-7 w-7 items-center justify-center rounded-full border-2 text-xs font-bold transition ${
+                        isChecked
+                          ? "border-white bg-white/20 text-white"
+                          : "border-rappi-orange/40 bg-white text-rappi-orange"
+                      }`}
+                      aria-hidden="true"
+                    >
+                      {isChecked ? "✓" : ""}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
           </div>
         </section>
@@ -549,50 +846,96 @@ function App() {
         <section ref={seccionesRef} className="px-6 sm:px-10 lg:px-24">
           <div className="grid gap-8 lg:grid-cols-2">
             <div className="space-y-6">
-              {primeraColumna.map(({ title, quick, cta }) => (
-                <article key={title} className="section-card p-6">
-                  <h3 className="text-xl font-semibold text-rappi-graphite">{title}</h3>
-                  <div className="mt-4 flex flex-wrap gap-2 text-sm text-rappi-graphite/80">
-                    {quick.map((item) => (
-                      <span
-                        key={item}
-                        className="inline-flex items-center rounded-full bg-rappi-orange/10 px-3 py-1 font-medium text-rappi-orange"
-                      >
-                        {item}
-                      </span>
-                    ))}
-                  </div>
-                  <button
-                    type="button"
-                    className="mt-6 inline-flex items-center rounded-full border border-rappi-orange/40 px-4 py-2 text-xs font-semibold uppercase tracking-[0.25em] text-rappi-orange"
-                  >
-                    {cta}
-                  </button>
-                </article>
-              ))}
+              {primeraColumna.map((section) => {
+                const { title, quick, cta, actionMessages } = section;
+                const sectionState = sectionActionState[title];
+                const isLoading = sectionState?.phase === "loading";
+                const feedbackClass = sectionState?.phase === "success"
+                  ? "text-emerald-600"
+                  : "text-rappi-graphite/60";
+                const celebrateId = sectionState?.celebrateId;
+                const showConfetti = Boolean(celebrateId);
+
+                return (
+                  <article key={title} className="section-card relative overflow-hidden p-6">
+                    {showConfetti && <ConfettiBurst seed={celebrateId} />}
+                    <h3 className="text-xl font-semibold text-rappi-graphite">{title}</h3>
+                    <div className="mt-4 flex flex-wrap gap-2 text-sm text-rappi-graphite/80">
+                      {quick.map((item) => (
+                        <span
+                          key={item}
+                          className="inline-flex items-center rounded-full bg-rappi-orange/10 px-3 py-1 font-medium text-rappi-orange"
+                        >
+                          {item}
+                        </span>
+                      ))}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleSectionAction({ title, actionMessages })}
+                      disabled={isLoading}
+                      className={`mt-6 inline-flex items-center rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-[0.25em] transition ${
+                        isLoading
+                          ? "cursor-not-allowed border-rappi-orange/20 bg-white/70 text-rappi-orange/40"
+                          : "border-rappi-orange/40 text-rappi-orange hover:border-rappi-orange/60"
+                      }`}
+                    >
+                      {cta}
+                    </button>
+                    {sectionState && (
+                      <p className={`mt-4 text-sm font-semibold ${feedbackClass}`}>
+                        {sectionState.message}
+                      </p>
+                    )}
+                  </article>
+                );
+              })}
             </div>
             <div className="space-y-6">
-              {segundaColumna.map(({ title, quick, cta }) => (
-                <article key={title} className="section-card p-6">
-                  <h3 className="text-xl font-semibold text-rappi-graphite">{title}</h3>
-                  <div className="mt-4 flex flex-wrap gap-2 text-sm text-rappi-graphite/80">
-                    {quick.map((item) => (
-                      <span
-                        key={item}
-                        className="inline-flex items-center rounded-full bg-rappi-coral/10 px-3 py-1 font-medium text-rappi-coral"
-                      >
-                        {item}
-                      </span>
-                    ))}
-                  </div>
-                  <button
-                    type="button"
-                    className="mt-6 inline-flex items-center rounded-full border border-rappi-coral/30 px-4 py-2 text-xs font-semibold uppercase tracking-[0.25em] text-rappi-coral"
-                  >
-                    {cta}
-                  </button>
-                </article>
-              ))}
+              {segundaColumna.map((section) => {
+                const { title, quick, cta, actionMessages } = section;
+                const sectionState = sectionActionState[title];
+                const isLoading = sectionState?.phase === "loading";
+                const feedbackClass = sectionState?.phase === "success"
+                  ? "text-emerald-600"
+                  : "text-rappi-graphite/60";
+                const celebrateId = sectionState?.celebrateId;
+                const showConfetti = Boolean(celebrateId);
+
+                return (
+                  <article key={title} className="section-card relative overflow-hidden p-6">
+                    {showConfetti && <ConfettiBurst seed={celebrateId} />}
+                    <h3 className="text-xl font-semibold text-rappi-graphite">{title}</h3>
+                    <div className="mt-4 flex flex-wrap gap-2 text-sm text-rappi-graphite/80">
+                      {quick.map((item) => (
+                        <span
+                          key={item}
+                          className="inline-flex items-center rounded-full bg-rappi-coral/10 px-3 py-1 font-medium text-rappi-coral"
+                        >
+                          {item}
+                        </span>
+                      ))}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleSectionAction({ title, actionMessages })}
+                      disabled={isLoading}
+                      className={`mt-6 inline-flex items-center rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-[0.25em] transition ${
+                        isLoading
+                          ? "cursor-not-allowed border-rappi-coral/20 bg-white/70 text-rappi-coral/40"
+                          : "border-rappi-coral/30 text-rappi-coral hover:border-rappi-coral/50"
+                      }`}
+                    >
+                      {cta}
+                    </button>
+                    {sectionState && (
+                      <p className={`mt-4 text-sm font-semibold ${feedbackClass}`}>
+                        {sectionState.message}
+                      </p>
+                    )}
+                  </article>
+                );
+              })}
             </div>
           </div>
         </section>
@@ -661,6 +1004,7 @@ function App() {
 
             <div className={journeyWrapperClass}>
               <div className={journeyCardClass}>
+                {isProJourney && journeyCelebrateId && <ConfettiBurst seed={journeyCelebrateId} />}
                 <span className="inline-flex items-center gap-2 rounded-full bg-rappi-orange/10 px-4 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-rappi-orange">
                   <span>✨</span>
                   {journeys[activeJourney].tag}
@@ -674,6 +1018,27 @@ function App() {
                 <p className="mt-4 text-sm text-rappi-graphite/75">{journeys[activeJourney].highlight}</p>
                 {journeys[activeJourney].subcopy && (
                   <p className="mt-1 text-xs text-rappi-graphite/60">{journeys[activeJourney].subcopy}</p>
+                )}
+                {isNoteJourney && (
+                  <div className="mt-6 mx-auto flex w-full max-w-xl flex-col items-center gap-3">
+                    <label
+                      htmlFor="note-journey-text"
+                      className="text-xs font-semibold uppercase tracking-[0.3em] text-rappi-graphite/60"
+                    >
+                      Escribe tu nota
+                    </label>
+                    <textarea
+                      id="note-journey-text"
+                      value={noteJourneyText}
+                      onChange={(event) => setNoteJourneyText(event.target.value)}
+                      placeholder="Ej: ‘Prefiero empaque reciclable y sin cubiertos extra, gracias’."
+                      rows={3}
+                      maxLength={180}
+                      disabled={noteJourneyStatus?.phase === "loading"}
+                      className="w-full resize-none rounded-2xl border border-rappi-orange/30 bg-white/85 p-4 text-sm text-rappi-graphite shadow-inner shadow-orange-500/5 focus:border-rappi-orange focus:outline-none focus:ring-2 focus:ring-rappi-orange/20 disabled:cursor-not-allowed disabled:opacity-70"
+                    />
+                    <p className="text-xs text-rappi-graphite/60">Tu shopper verá este mensaje cuando prepare el pedido.</p>
+                  </div>
                 )}
                 {isSwapJourney && currentJourney.imageFile && (
                   <div className="mt-6 flex justify-center">
@@ -696,20 +1061,22 @@ function App() {
                 {journeys[activeJourney].renewal && (
                   <p className="text-xs text-rappi-graphite/60">{journeys[activeJourney].renewal}</p>
                 )}
-                <div className={`mt-8 space-y-4 ${isProJourney ? "mx-auto max-w-xl" : ""}`}>
+                <div className={`mt-8 space-y-4 ${isProJourney || isNoteJourney ? "mx-auto max-w-xl" : ""}`}>
                   {journeys[activeJourney].perks.map(({ title, detail, iconBg, iconLabel }) => (
                     <div
                       key={title}
                       className={`rounded-2xl bg-white/80 p-4 shadow-inner shadow-orange-500/5 ${
-                        isProJourney ? "flex flex-col items-center gap-3 text-center" : "flex items-start gap-4"
+                        isProJourney || isNoteJourney
+                          ? "flex flex-col items-center gap-3 text-center"
+                          : "flex items-start gap-4"
                       }`}
                     >
                       <span
-                        className={`flex ${isProJourney ? "h-12 w-12" : "h-10 w-10"} items-center justify-center rounded-full text-lg ${iconBg}`}
+                        className={`flex ${isProJourney || isNoteJourney ? "h-12 w-12" : "h-10 w-10"} items-center justify-center rounded-full text-lg ${iconBg}`}
                       >
                         {iconLabel}
                       </span>
-                      <div className={isProJourney ? "space-y-1 text-center" : ""}>
+                      <div className={isProJourney || isNoteJourney ? "space-y-1 text-center" : ""}>
                         <p className="font-semibold text-rappi-graphite">{title}</p>
                         <p className="text-sm text-rappi-graphite/70">{detail}</p>
                       </div>
@@ -717,21 +1084,70 @@ function App() {
                   ))}
                 </div>
                 <div className={actionContainerClass}>
-                  {journeys[activeJourney].actions.map(({ label, tone, action }) => (
-                    <button
-                      key={label}
-                      type="button"
-                      onClick={() => handleJourneyAction(action)}
-                      className={`rounded-full px-6 py-3 text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-rappi-orange/50 ${
-                        tone === "primary"
-                          ? "bg-rappi-orange text-white shadow-lg shadow-orange-500/20 hover:-translate-y-0.5 hover:shadow-orange-500/30"
-                          : "border border-rappi-orange/30 bg-white text-rappi-orange hover:border-rappi-orange"
-                      }`}
-                    >
-                      {label}
-                    </button>
-                  ))}
+                  {journeys[activeJourney].actions.map(({ label, tone, action }) => {
+                    const isProLoading =
+                      isProJourney &&
+                      journeyActionStatus?.phase === "loading" &&
+                      journeyActionStatus.type === action;
+                    const isNoteLoading =
+                      isNoteJourney &&
+                      action === "save" &&
+                      noteJourneyStatus?.phase === "loading";
+                    const isDisabled = isProLoading || isNoteLoading;
+                    const displayLabel = isProLoading
+                      ? action === "join"
+                        ? "Activando..."
+                        : "Renovando..."
+                      : isNoteLoading
+                        ? "Guardando..."
+                        : label;
+                    return (
+                      <button
+                        key={label}
+                        type="button"
+                        onClick={() => handleJourneyAction(action)}
+                        disabled={isDisabled}
+                        className={`rounded-full px-6 py-3 text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-rappi-orange/50 disabled:cursor-not-allowed disabled:opacity-60 ${
+                          tone === "primary"
+                            ? "bg-rappi-orange text-white shadow-lg shadow-orange-500/20 hover:-translate-y-0.5 hover:shadow-orange-500/30 disabled:hover:translate-y-0 disabled:hover:shadow-none"
+                            : "border border-rappi-orange/30 bg-white text-rappi-orange hover:border-rappi-orange"
+                        }`}
+                      >
+                        {displayLabel}
+                      </button>
+                    );
+                  })}
                 </div>
+                {isNoteJourney && noteJourneyStatus && (
+                  <div
+                    className={`mt-5 rounded-3xl border p-5 text-sm transition ${
+                      noteJourneyStatus.phase === "success"
+                        ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                        : noteJourneyStatus.phase === "error"
+                          ? "border-red-200 bg-red-50 text-red-700"
+                          : "border-rappi-orange/30 bg-rappi-orange/5 text-rappi-orange"
+                    }`}
+                  >
+                    {noteJourneyStatus.phase === "loading" ? (
+                      <div className="flex items-center justify-center gap-3">
+                        <span className="inline-flex h-4 w-4 items-center justify-center">
+                          <span className="block h-4 w-4 animate-spin rounded-full border-2 border-rappi-orange border-t-transparent" aria-hidden="true" />
+                        </span>
+                        <span className="font-semibold">{noteJourneyStatus.message}</span>
+                      </div>
+                    ) : noteJourneyStatus.phase === "error" ? (
+                      <div className="space-y-1 text-center">
+                        <p className="text-sm font-semibold">Necesitamos algo de texto</p>
+                        <p className="text-xs text-red-600/80">{noteJourneyStatus.message}</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-1 text-center">
+                        <p className="text-sm font-semibold">Mensaje guardado ✅</p>
+                        <p className="text-xs text-emerald-600/80">{noteJourneyStatus.message}</p>
+                      </div>
+                    )}
+                  </div>
+                )}
                 {isProJourney && journeyActionStatus && (
                   <div
                     className={`mt-5 rounded-3xl border p-5 text-sm transition ${

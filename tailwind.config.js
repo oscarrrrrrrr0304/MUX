@@ -17,8 +17,8 @@ export default {
         }
       },
       backgroundImage: {
-        mesh: "radial-gradient(circle at 10% 20%, rgba(255, 107, 74, 0.28), transparent 42%), radial-gradient(circle at 70% 10%, rgba(255, 195, 69, 0.25), transparent 52%), radial-gradient(circle at 20% 80%, rgba(33, 212, 179, 0.25), transparent 55%)",
-        sunny: "linear-gradient(135deg, #fff0e5 0%, #ffe3d1 45%, #ffd7c0 100%)"
+        mesh: "radial-gradient(circle at 12% 18%, rgba(255, 107, 74, 0.12), transparent 45%), radial-gradient(circle at 72% 12%, rgba(255, 195, 69, 0.12), transparent 50%), radial-gradient(circle at 24% 82%, rgba(33, 212, 179, 0.1), transparent 55%)",
+        sunny: "linear-gradient(135deg, #fff7f0 0%, #fff3e8 45%, #fff0e2 75%, #fff0e0 100%)"
       }
     }
   }

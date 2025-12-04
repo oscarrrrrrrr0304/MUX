@@ -8,11 +8,46 @@
 
 body {
   margin: 0;
-  background-color: #fff5ec;
-  background-image: radial-gradient(circle at top right, rgba(255, 107, 74, 0.25), transparent 55%), radial-gradient(circle at bottom left, rgba(255, 195, 69, 0.25), transparent 60%);
+  background-color: #fff4ec;
+  background-image: none;
 }
 
 .section-card {
   @apply rounded-3xl border border-white/60 bg-white/90 backdrop-blur-xl shadow-2xl;
   box-shadow: 0 32px 60px -32px rgba(255, 107, 74, 0.38);
+}
+
+.confetti-burst {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 20;
+}
+
+.confetti-piece {
+  position: absolute;
+  top: -10%;
+  width: 0.4rem;
+  height: 1rem;
+  border-radius: 0.2rem;
+  opacity: 0;
+  transform: translate3d(0, -60%, 0) rotate(var(--confetti-rotate-start, 0deg));
+  animation-name: confetti-fall;
+  animation-timing-function: ease-out;
+  animation-fill-mode: forwards;
+}
+
+@keyframes confetti-fall {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, -40%, 0) rotate(var(--confetti-rotate-start, 0deg));
+  }
+  45% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(var(--confetti-x, 0%), 160%, 0) rotate(var(--confetti-rotate-end, 180deg));
+  }
 }
